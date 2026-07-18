@@ -1,32 +1,37 @@
 <div align="center">
 
+<img src="./assets/logo.png" alt="DOMINUS Logo" width="220"/>
+
 # DOMINUS
 
 ### The Central Intelligence Operating System
 
-*One Mind. Infinite Systems.*
+**One Mind. Infinite Systems.**
 
----
+<p align="center">
+    <img src="https://img.shields.io/badge/Status-Active%20Development-C8A24A?style=for-the-badge&logo=github" />
+    <img src="https://img.shields.io/badge/Architecture-Microservices-111111?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Python-3.12+-C8A24A?style=for-the-badge&logo=python" />
+    <img src="https://img.shields.io/badge/License-MIT-111111?style=for-the-badge" />
+</p>
 
-A modular AI Operating System designed to orchestrate intelligent agents,
-automation, financial systems, analytics, personal knowledge,
-and decision-making through a single unified intelligence layer.
+*A Personal AI Operating System built to orchestrate intelligent agents, financial intelligence, automation, knowledge, analytics, and decision-making through one centralized executive intelligence.*
 
 </div>
 
 ---
 
-## Vision
+# Vision
 
-DOMINUS is not another AI chatbot.
+DOMINUS is **not another AI chatbot**.
 
-It is an AI Operating System that serves as the central intelligence layer for an entire ecosystem of specialized AI agents, services, and automation workflows.
+DOMINUS is a **Personal AI Operating System (AI OS)** designed to orchestrate an ecosystem of intelligent services through one executive intelligence layer.
 
-Instead of replacing existing systems, DOMINUS connects, monitors, analyzes, and orchestrates them through a unified architecture.
+Instead of replacing existing applications, DOMINUS connects, monitors, analyzes, reasons, and coordinates every subsystem from one centralized platform.
 
-The goal is simple:
+Its long-term mission is simple:
 
-> Build one intelligence capable of managing many intelligent systems.
+> **One Intelligence. Unlimited Systems.**
 
 ---
 
@@ -34,270 +39,216 @@ The goal is simple:
 
 Traditional AI
 
-```
-
-Human ⇄ AI
-
-```
-
-DOMINUS
-
-```
-
+```text
 Human
    │
    ▼
+AI Assistant
+```
+
 DOMINUS
+
+```text
+Human
    │
-   ├──────── Finance Intelligence
-   ├──────── Prediction Intelligence
-   ├──────── News Intelligence
-   ├──────── Automation Hub
-   ├──────── Knowledge Base
-   ├──────── Analytics
-   └──────── Plugin Ecosystem
-
+   ▼
+DOMINUS Executive Intelligence
+   │
+   ├── Finance Intelligence
+   ├── Prediction Intelligence
+   ├── News Intelligence
+   ├── Knowledge Intelligence
+   ├── Automation Hub
+   ├── Memory Engine
+   ├── Analytics Center
+   ├── Monitoring Center
+   └── Plugin Ecosystem
 ```
 
-DOMINUS becomes the executive intelligence rather than another assistant.
-
----
-
-# Core Principles
-
-## Modular
-
-Every capability is an independent module.
-
-Finance can evolve independently from News.
-
-Automation can evolve independently from Prediction.
-
-Nothing should depend on a monolithic AI.
-
----
-
-## AI Orchestration
-
-DOMINUS does not perform every task itself.
-
-Instead, it coordinates specialized AI systems capable of solving domain-specific problems.
-
----
-
-## Human-in-the-loop
-
-Artificial Intelligence proposes.
-
-Human approves.
-
-Critical actions should never execute without explicit permission.
-
----
-
-## Intelligence over Automation
-
-Automation executes.
-
-Intelligence decides.
-
-DOMINUS focuses on reasoning rather than blindly executing workflows.
-
----
-
-## Extensible
-
-Every new capability should be installable as a module.
-
-```
-
-DOMINUS
-
-├── Finance
-
-├── News
-
-├── Predictor
-
-├── Browser
-
-├── Memory
-
-├── Vision
-
-├── Voice
-
-└── Plugins
-
-```
+DOMINUS acts as the executive intelligence responsible for coordinating specialized systems rather than replacing them.
 
 ---
 
 # Architecture
 
+```text
+                                              DOMINUS
+                                   Central Executive Intelligence
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                            │
+│                                  Executive AI (Reasoning Layer)                           │
+│                      Planning • Memory • Routing • Context • Decision Support             │
+│                                                                                            │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 API Gateway / Command Router                              │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
+                                              │
+════════════════════════════════════════════ Event Bus ════════════════════════════════════════
+
+        │                 │                 │                 │                 │
+        ▼                 ▼                 ▼                 ▼                 ▼
+
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│ Finance MS  │   │Predictor MS │   │  News MS    │   │ Memory MS   │   │ Tools MS    │
+└──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘
+       │                 │                 │                 │                 │
+       ▼                 ▼                 ▼                 ▼                 ▼
+
+ PostgreSQL         AI Models         Crawlers         Vector DB        External APIs
+
+       ▲                 ▲                 ▲                 ▲                 ▲
+       │                 │                 │                 │                 │
+
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│ Analytics   │   │Monitoring   │   │ Scheduler   │   │Notification │   │ Plugin SDK  │
+└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════════════════════
+
+                 Dashboard • Desktop • Mobile • REST API • CLI • WebSocket
 ```
 
-                        DOMINUS
-                Central Intelligence Core
-                             │
-        ┌────────────────────┼────────────────────┐
-        │                    │                    │
-   AI Executive        Decision Engine      Memory Engine
-        │                    │                    │
-        └────────────────────┼────────────────────┘
-                             │
-                   Permission Manager
-                             │
-     ┌───────────────┬──────────────┬───────────────┐
-     │               │              │
- Finance        Prediction      News Intelligence
-     │               │              │
- Automation      Analytics       Knowledge
-     │               │              │
-     └───────────────┴──────────────┘
-                             │
-                     Plugin Ecosystem
+---
 
-```
+# Core Principles
+
+- Executive Intelligence
+- Microservice Architecture
+- Event-Driven Communication
+- Human-in-the-loop
+- AI Orchestration
+- Plugin-first Design
+- Long-term Memory
+- Observability
+- Security by Default
+- Scalable Infrastructure
 
 ---
 
 # Current Modules
 
+- Executive AI
 - Finance Intelligence
 - Prediction Engine
-- AI Dashboard
 - News Intelligence
-- Automation Hub
 - Knowledge Management
 - Memory Engine
+- Automation Hub
+- Dashboard
 - Analytics Center
+- Monitoring Center
 
 ---
 
 # Planned Modules
 
-- Voice Assistant
-
-- Vision
-
-- Local LLM Manager
-
-- Mobile Companion
-
-- Browser Agent
-
-- Scheduler
-
-- Workflow Builder
-
-- Plugin Marketplace
-
-- Multi-Agent Collaboration
-
+- Voice Intelligence
+- Vision Intelligence
 - AI Research Assistant
-
----
-
-# Features
-
-- Unified AI Dashboard
-- Modular Architecture
-- AI Agent Orchestration
-- Dynamic Permission System
-- Event-based Communication
-- Long-term Memory
-- Financial Analytics
-- News Monitoring
-- AI Performance Monitoring
-- Plugin System
-- API Gateway
-- Multi-model Support
+- Browser Agent
+- Mobile Companion
+- Local LLM Manager
+- Knowledge Graph
+- Workflow Builder
+- Plugin Marketplace
+- Multi-Agent Collaboration
+- Distributed Deployment
 
 ---
 
 # Technology Stack
 
-Backend
+### Backend
 
 - Python
 - FastAPI
+- SQLAlchemy
 - PostgreSQL
 - Redis
 
-AI
+### Artificial Intelligence
 
 - OpenAI
-- Local LLM
 - Ollama
 - Transformers
+- Sentence Transformers
+- LangGraph
+- MCP
 
-Frontend
+### Frontend
 
-- Next.js
 - React
+- Next.js
 - TailwindCSS
+- shadcn/ui
 
-Infrastructure
+### Infrastructure
 
 - Docker
+- Docker Compose
+- Kubernetes
 - Nginx
-- Linux
+- Prometheus
+- Grafana
 
 ---
 
-# Roadmap
+# Repository Structure
 
-### Phase I
+```text
+dominus/
 
-- Core Architecture
-
-- Dashboard
-
-- Finance
-
-- Predictor
-
-- News
-
----
-
-### Phase II
-
-- Multi-Agent System
-
-- Memory Engine
-
-- Voice
-
-- Vision
-
----
-
-### Phase III
-
-- Autonomous Planning
-
-- Plugin SDK
-
-- Cloud Synchronization
-
-- Mobile App
-
----
-
-# Long-term Goal
-
-Create an AI Operating System capable of managing every digital aspect of a personal ecosystem through one centralized intelligence.
-
-Not replacing humans.
-
-Empowering them.
+├── assets/
+│   ├── logo.png
+│   ├── banner.png
+│   └── architecture.png
+│
+├── apps/
+│   ├── dashboard/
+│   ├── desktop/
+│   ├── mobile/
+│   └── api-gateway/
+│
+├── services/
+│   ├── finance/
+│   ├── predictor/
+│   ├── news/
+│   ├── memory/
+│   ├── automation/
+│   ├── analytics/
+│   ├── monitoring/
+│   └── notification/
+│
+├── ai/
+│   ├── executive/
+│   ├── reasoning/
+│   ├── planner/
+│   ├── router/
+│   ├── memory/
+│   └── prompts/
+│
+├── plugins/
+├── shared/
+├── infrastructure/
+├── docs/
+└── README.md
+```
 
 ---
 
-# License
+# Long-term Vision
 
-This project is currently under active development.
+DOMINUS aims to become a true **Personal AI Operating System** capable of orchestrating every intelligent subsystem from one centralized executive intelligence.
 
-© DOMINUS Project
+Rather than replacing humans, DOMINUS is built to amplify decision-making, automate complex workflows, and provide complete situational awareness across an entire personal AI ecosystem.
+
+> **One Mind. Infinite Systems.**
+
+---
+
+## License
+
+MIT License © 2026 DOMINUS Project
