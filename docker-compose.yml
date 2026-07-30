@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: dominus_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: markovlotteai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: dominus_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  markovbrain:
+    build:
+      context: ./MarkovBrain
+    container_name: markov_brain
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/markovlotteai
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  dominus-backend:
+    build:
+      context: ./dominus-backend
+    container_name: dominus_backend
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/markovlotteai
+      - REDIS_HOST=redis
+      - MARKOV_BRAIN_URL=http://markovbrain:8000
+      - MARKOV_BRAIN_WS=ws://markovbrain:8000/ws
+    depends_on:
+      - db
+      - redis
+      - markovbrain
+
+  dominus-frontend:
+    build:
+      context: ./dominus-frontend
+    container_name: dominus_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - dominus-backend
+
+volumes:
+  pgdata:
