@@ -11,4 +11,4 @@ echo [*] Dang khoi dong ung dung Desktop Tauri (Rust + Next.js)...
 echo [!] Cac service con (MarkovBrain, Backend) se tu dong khoi chay boi Rust.
 echo.
 cd /d "%~dp0dominus-frontend"
-npx tauri dev
+npm run tauri dev
