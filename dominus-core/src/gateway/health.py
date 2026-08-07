@@ -29,7 +29,7 @@ def _check_redis_sync():
         host=config.REDIS_HOST,
         port=config.REDIS_PORT,
         password=config.REDIS_PASSWORD,
-        socket_timeout=2
+        socket_timeout=1
     )
     r.ping()
 
@@ -50,7 +50,7 @@ async def check_gemini() -> Dict[str, Any]:
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={config.GEMINI_API_KEY}"
     try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
+        async with httpx.AsyncClient(timeout=1.5) as client:
             response = await client.get(url)
             latency = (time.time() - start_time) * 1000
             if response.status_code == 200:
@@ -96,7 +96,20 @@ async def check_dynamic_service(code: str, name: str, meta_payload: Any) -> Dict
         logger.warning(f"Health check: Service {code} ({url}) check failed: {e}")
         return {"status": "offline", "error": str(e)}
 
+_health_cache = None
+_health_cache_time = 0.0
+_health_cache_lock = asyncio.Lock()
+CACHE_DURATION_SECONDS = 3.0
+
 async def get_system_health() -> Dict[str, Any]:
+    global _health_cache, _health_cache_time
+    
+    # Kiem tra va tra ve ngay ket qua cache neu con trong thoi han 3s
+    async with _health_cache_lock:
+        current_time = time.time()
+        if _health_cache and (current_time - _health_cache_time) < CACHE_DURATION_SECONDS:
+            return _health_cache
+
     # 1. Check core systems: db, redis, gemini
     db_task = check_database()
     redis_task = check_redis()
@@ -165,7 +178,7 @@ async def get_system_health() -> Dict[str, Any]:
             if status_info["status"] != "healthy" and overall_status == "healthy":
                 overall_status = "degraded"
                 
-    return {
+    health_data = {
         "status": overall_status,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "services": {
@@ -175,3 +188,10 @@ async def get_system_health() -> Dict[str, Any]:
             **services_report
         }
     }
+    
+    # Cap nhat cache truoc khi tra ve
+    async with _health_cache_lock:
+        _health_cache = health_data
+        _health_cache_time = time.time()
+        
+    return health_data
