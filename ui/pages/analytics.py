@@ -110,6 +110,7 @@ def render_analytics(container: ui.column):
                 # Header bang
                 with ui.row().classes('w-full justify-between items-center px-2 py-1 bg-[#1a1a1a]/80 text-[10px] font-mono-lbl text-[#99907c] uppercase tracking-wider rounded'):
                     ui.label('Kỳ cược').classes('w-16')
+                    ui.label('Thời gian').classes('w-16 text-center')
                     ui.label('Dự đoán Tài/Xỉu').classes('grow text-center')
                     ui.label('Dự đoán Chẵn/Lẻ').classes('grow text-center')
                     ui.label('Kết quả').classes('w-12 text-center')
@@ -260,9 +261,13 @@ def render_analytics(container: ui.column):
                                         status_txt = "1W/1L"
                                         status_class = "text-blue-400 font-bold"
                                 
+                                import time
+                                p_ts = p.get("timestamp")
+                                p_time = time.strftime("%H:%M:%S", time.localtime(p_ts)) if p_ts else "--"
                                 with predictions_container:
                                     with ui.row().classes('w-full justify-between items-center px-2 py-1.5 bg-[#0e0e0e]/50 border border-[#D4AF37]/5 rounded text-xs font-mono-lbl no-wrap'):
                                         ui.label(issue[-6:] if len(issue) > 6 else issue).classes('w-16 font-bold text-[#e5e2e1]')
+                                        ui.label(p_time).classes('w-16 text-center text-[#99907c]')
                                         ui.label(size_pred).classes('grow text-center text-amber-100')
                                         ui.label(parity_pred).classes('grow text-center text-amber-100')
                                         ui.label(real_res).classes('w-12 text-center text-[#99907c]')

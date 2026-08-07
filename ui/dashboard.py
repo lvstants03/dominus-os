@@ -72,7 +72,28 @@ def build_dashboard():
                     ui.label('DOMINUS OS').classes('font-bold text-lg tracking-widest gold-text')
                     ui.label('Central Executive Node').classes('text-[9px] text-[#99907c] font-mono-lbl tracking-wider uppercase')
             
-            with ui.row().classes('items-center gap-4 font-mono-lbl text-xs'):
+            with ui.row().classes('items-center gap-6 font-mono-lbl text-xs'):
+                # Socket Status
+                with ui.row().classes('items-center gap-1.5'):
+                    ui.label('SOCKET:').classes('text-[#99907c]')
+                    socket_status_lbl = ui.label('CONNECTING').classes('text-amber-500 font-bold')
+                    socket_badge = ui.badge().classes('w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse')
+                    
+                    async def on_reconnect_socket():
+                        try:
+                            import httpx
+                            async with httpx.AsyncClient() as client:
+                                res = await client.post('http://127.0.0.1:8000/api/reconnect', timeout=3.0)
+                                if res.status_code == 200:
+                                    ui.notify('Đã gửi yêu cầu kết nối lại Socket Scraper!', type='positive')
+                                else:
+                                    ui.notify('Kết nối lại Socket thất bại!', type='negative')
+                        except Exception as ex:
+                            ui.notify(f'Lỗi kết nối API Socket: {ex}', type='negative')
+                            
+                    ui.button(icon='refresh', on_click=on_reconnect_socket).props('flat dense size=xs color=amber-500').classes('ml-1').tooltip('Reconnect Scraper Socket')
+
+                # System Status
                 with ui.row().classes('items-center gap-1.5'):
                     ui.label('SYSTEM:').classes('text-[#99907c]')
                     ui.label('ACTIVE / SECURED').classes('text-green-400 font-bold')
@@ -149,21 +170,50 @@ def build_dashboard():
                 # Default tab
                 switch_tab('analytics')
                 
-                # Auto update balance
-                async def update_balance():
+                # Auto update balance and socket status
+                async def update_balance_and_socket():
+                    import httpx
+                    import time
                     try:
-                        import httpx
                         async with httpx.AsyncClient() as client:
-                            res = await client.get('http://127.0.0.1:8000/api/balance')
-                            if res.status_code == 200:
-                                data = res.json()
-                                balances_data = data.get("balances", {})
-                                real = balances_data.get("real_balance", 0.0)
-                                demo = balances_data.get("demo_balance", 0.0)
-                                self_balance.text = f"{real:,.0f} VND"
-                            else:
+                            # 1. Fetch balance
+                            try:
+                                res = await client.get('http://127.0.0.1:8000/api/balance', timeout=2.0)
+                                if res.status_code == 200:
+                                    data = res.json()
+                                    balances_data = data.get("balances", {})
+                                    real = balances_data.get("real_balance", 0.0)
+                                    self_balance.text = f"{real:,.0f} VND"
+                                else:
+                                    self_balance.text = "0 VND"
+                            except Exception:
                                 self_balance.text = "0 VND"
+
+                            # 2. Fetch socket statistics
+                            try:
+                                res_stats = await client.get('http://127.0.0.1:8000/api/statistics', timeout=2.0)
+                                if res_stats.status_code == 200:
+                                    stats_data = res_stats.json()
+                                    ws_status = stats_data.get("ws_status", "disconnected").upper()
+                                    t_str = time.strftime("%H:%M:%S")
+                                    socket_status_lbl.text = f"{ws_status} ({t_str})"
+                                    socket_status_lbl.classes(remove='text-green-400 text-amber-500 text-red-500')
+                                    socket_badge.classes(remove='bg-green-500 bg-amber-500 bg-red-500')
+                                    if ws_status == "CONNECTED":
+                                        socket_status_lbl.classes('text-green-400')
+                                        socket_badge.classes('bg-green-500')
+                                    else:
+                                        socket_status_lbl.classes('text-red-500')
+                                        socket_badge.classes('bg-red-500')
+                                else:
+                                    socket_status_lbl.text = "DISCONNECTED"
+                                    socket_status_lbl.classes(remove='text-green-400 text-amber-500 text-red-500').classes('text-red-500')
+                                    socket_badge.classes(remove='bg-green-500 bg-amber-500 bg-red-500').classes('bg-red-500')
+                            except Exception:
+                                socket_status_lbl.text = "OFFLINE"
+                                socket_status_lbl.classes(remove='text-green-400 text-amber-500 text-red-500').classes('text-red-500')
+                                socket_badge.classes(remove='bg-green-500 bg-amber-500 bg-red-500').classes('bg-red-500')
                     except Exception:
-                        self_balance.text = "0 VND"
+                        pass
                 
-                ui.timer(3.0, update_balance)
+                ui.timer(3.0, update_balance_and_socket)

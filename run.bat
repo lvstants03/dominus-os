@@ -1,12 +1,14 @@
 @echo off
 chcp 65001 > nul
 echo =====================================================================
-echo                 HE THONG DIEU HANH DOMINUS OS
+echo                 HE THONG DIEU HANH DOMINUS OS (TAURI)
 echo =====================================================================
 echo.
-echo [*] Dang khoi dong executive console...
+echo [*] Dang cau hinh moi truong cho Rust...
+set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
 
-call MarkovBrain\.venv\Scripts\activate
-set "PYTHONPATH=dominus-core;."
-set PYTHONWARNINGS=ignore
-python dominus-assistant/main.py
+echo [*] Dang khoi dong ung dung Desktop Tauri (Rust + Next.js)...
+echo [!] Cac service con (MarkovBrain, Backend) se tu dong khoi chay boi Rust.
+echo.
+cd /d "%~dp0dominus-frontend"
+npx tauri dev

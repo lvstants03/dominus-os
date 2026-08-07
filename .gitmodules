@@ -1,0 +1,3 @@
+[submodule "dominus-frontend"]
+	path = dominus-frontend
+	url = https://github.com/lvstants03/dominous-ui.git

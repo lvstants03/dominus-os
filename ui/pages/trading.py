@@ -51,20 +51,46 @@ def render_trading(container: ui.column):
                         except Exception as e:
                             ui.notify(f'Reset thất bại: {e}', type='negative')
 
-                    async def on_clear_data():
+                    async def on_reset_all_system():
+                        with ui.dialog() as dialog, ui.card().classes('p-4 gold-border bg-[#0e0e0e] text-[#e5e2e1]'):
+                            ui.label('XÁC NHẬN RESET TOÀN DIỆN').classes('text-sm font-bold gold-text font-mono-lbl mb-2')
+                            ui.label('Hành động này sẽ xóa sạch: Lịch sử cược giả lập, Lịch sử dự đoán AI, và reset số dư demo về 10M VND.').classes('text-xs text-[#99907c] mb-4')
+                            ui.label('LƯU Ý: Lịch sử kỳ quay số và AI Engine sẽ được giữ nguyên để tránh lỗi dữ liệu.').classes('text-[10px] text-amber-500 mb-4 font-bold')
+                            with ui.row().classes('w-full justify-end gap-2'):
+                                ui.button('Hủy', on_click=dialog.close).props('flat color=white dense')
+                                async def confirm_reset():
+                                    try:
+                                        async with httpx.AsyncClient() as client:
+                                            res = await client.post('http://127.0.0.1:8000/api/system/reset-all')
+                                            if res.status_code == 200:
+                                                ui.notify('Đã reset toàn bộ hệ thống thành công!', type='positive')
+                                                dialog.close()
+                                                await fetch_trading_data()
+                                            else:
+                                                ui.notify('Reset thất bại!', type='negative')
+                                    except Exception as ex:
+                                        ui.notify(f'Lỗi kết nối API: {ex}', type='negative')
+                                ui.button('Xác nhận', on_click=confirm_reset).props('flat color=red-500 dense')
+                        dialog.open()
+
+                    async def on_trigger_fetch():
                         try:
                             async with httpx.AsyncClient() as client:
-                                res = await client.post('http://127.0.0.1:8000/api/balance/clear-bets')
+                                res = await client.post('http://127.0.0.1:8000/api/trigger-fetch', timeout=3.0)
                                 if res.status_code == 200:
-                                    ui.notify('Đã xóa sạch bộ nhớ tạm và nạp lại lịch sử mới!', type='positive')
+                                    ui.notify('Đã kích hoạt kéo kết quả xổ số thủ công!', type='positive')
                                     await fetch_trading_data()
+                                else:
+                                    ui.notify('Yêu cầu kéo kết quả thất bại!', type='negative')
                         except Exception as e:
-                            ui.notify(f'Đồng bộ thất bại: {e}', type='negative')
+                            ui.notify(f'Lỗi kết nối API: {e}', type='negative')
 
                     ui.button('Reset Demo', icon='restart_alt', on_click=on_reset_demo) \
                         .classes('text-[10px] font-mono-lbl px-2 py-0.5').props('flat color=amber-500 dense')
-                    ui.button('Sync Scraper', icon='sync', on_click=on_clear_data) \
-                        .classes('text-[10px] font-mono-lbl px-2 py-0.5').props('flat color=amber-500 dense')
+                    ui.button('Reset All System', icon='dangerous', on_click=on_reset_all_system) \
+                        .classes('text-[10px] font-mono-lbl px-2 py-0.5').props('flat color=red-500 dense').tooltip('Xóa cược & dự đoán, reset balance')
+                    ui.button('Trigger Fetch', icon='cloud_download', on_click=on_trigger_fetch) \
+                        .classes('text-[10px] font-mono-lbl px-2 py-0.5').props('flat color=amber-500 dense').tooltip('Ép scraper tải kết quả kỳ mới')
 
         # Panel Cau hinh Real va Demo
         with ui.row().classes('w-full gap-4 mt-4 items-stretch no-wrap'):
@@ -376,20 +402,7 @@ def render_trading(container: ui.column):
                             s_wins = sum_data.get("wins", 0)
                             s_losses = sum_data.get("losses", 0)
                             summary_total.set_text(str(s_total))
-                            summary_win_loss.set_text(f"{s_wins}W / {s_losses}L")
-                            
-                            s_wr = sum_data.get("win_rate", 0.0)
-                            summary_win_rate.set_text(f"{s_wr:.1f}%")
-                            
-                            net_prof = sum_data.get("net_profit_vnd", 0.0)
-                            summary_profit.set_text(f"{net_prof:+,.0f} VND")
-                            summary_profit.classes(remove='text-green-400 text-red-400')
-                            summary_profit.classes('text-green-400' if net_prof >= 0 else 'text-red-400')
-                            
-                            peak_prof = balances.get("peak_demo_balance", demo_bal) - 10000000.0
-                            summary_peak.set_text(f"{peak_prof:+,.0f} VND")
-
-                        # ─── UPDATE CAPITAL COLLAPSES ───────────────────────────────
+                            # ─── UPDATE CAPITAL COLLAPSES ───────────────────────────────
                         collapses_container.clear()
                         col_list = bal_data.get("capital_collapses", [])
                         if col_list:
@@ -417,22 +430,25 @@ def render_trading(container: ui.column):
                                 amt = bet.get("amount", 0.0)
                                 status = bet.get("status", "pending")
                                 
+                                bet_time = bet.get("time", "--").split(" ")[0] if " " in bet.get("time", "") else bet.get("time", "--")
                                 status_txt = "Đang chờ"
                                 status_class = "text-amber-500"
                                 if status == "win":
                                     win_amt = bet.get("win_amount", 0.0)
-                                    status_txt = f"WIN (+{win_amt:,.0f} VND)"
+                                    net_profit = win_amt - amt
+                                    status_txt = f"WIN (+{win_amt:,.0f} / Net +{net_profit:,.0f} VND)"
                                     status_class = "text-green-400 font-bold"
                                 elif status == "lose":
                                     status_txt = f"LOSE (-{amt:,.0f} VND)"
                                     status_class = "text-red-400 font-bold"
-
+ 
                                 with demo_bets_container:
-                                    with ui.row().classes('w-full justify-between items-center p-2.5 bg-[#0e0e0e]/50 border border-[#D4AF37]/5 rounded text-xs font-mono-lbl'):
-                                        ui.label(f"#{issue}")
-                                        ui.label(f"{m_type}: {select_cua}")
-                                        ui.label(f"{amt:,.0f} VND").classes('text-[#99907c]')
-                                        ui.label(status_txt).classes(status_class)
+                                    with ui.row().classes('w-full justify-between items-center p-2.5 bg-[#0e0e0e]/50 border border-[#D4AF37]/5 rounded text-xs font-mono-lbl no-wrap'):
+                                        ui.label(f"#{issue}").classes('w-16 font-bold text-[#e5e2e1]')
+                                        ui.label(f"{m_type}: {select_cua}").classes('grow')
+                                        ui.label(bet_time).classes('w-16 text-[#99907c] text-center')
+                                        ui.label(f"{amt:,.0f} VND").classes('w-24 text-right text-[#99907c]')
+                                        ui.label(status_txt).classes(f'w-40 text-right {status_class}')
                         else:
                             with demo_bets_container:
                                 ui.label('Chưa có lịch sử cược giả lập.').classes('text-xs text-[#99907c] italic')

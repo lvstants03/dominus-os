@@ -7,6 +7,7 @@ from src.database.connection import init_db
 from src.database.db_seeding import seed_default_services
 from src.gateway.router import router as gateway_router
 from src.gateway.auth_routes import router as auth_router
+from src.gateway.ws_router import router as ws_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +37,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "http://tauri.localhost",
+        "tauri://localhost"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -53,6 +59,7 @@ def read_root():
 # Dang ky routers
 app.include_router(gateway_router)
 app.include_router(auth_router)
+app.include_router(ws_router)
 
 # NiceGUI Web Dashboard will be run independently on Port 8082 to avoid event loop conflicts.
 

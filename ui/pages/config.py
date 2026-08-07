@@ -271,7 +271,105 @@ def render_config(container: ui.column):
                             ui.button('Save Connection', icon='save', on_click=on_save_bot_conn) \
                                 .classes('font-mono-lbl text-xs text-black py-2').props('color=amber-500')
 
-                    # 2. Cấu hình thuật toán AI (37 tham số chia theo 7 Expansion Panels)
+                    # 2. Presets Manager (Algorithm Presets)
+                    with ui.column().classes('w-full glass-panel p-6 gap-4'):
+                        ui.label('ALGORITHM PRESETS MANAGER').classes('text-[10px] font-mono-lbl font-bold tracking-widest gold-text')
+                        
+                        presets_select = ui.select(options=[], label='Chọn Preset').classes('grow font-mono-lbl').props('dense outlined color=amber-500')
+                        
+                        async def fetch_presets():
+                            try:
+                                async with httpx.AsyncClient() as client:
+                                    res = await client.get('http://127.0.0.1:8000/api/config/presets')
+                                    if res.status_code == 200:
+                                        presets = res.json().get("presets", [])
+                                        presets_select.options = {p: p for p in presets}
+                                        if presets:
+                                            if not presets_select.value or presets_select.value not in presets:
+                                                presets_select.value = presets[0]
+                                        presets_select.update()
+                            except Exception as e:
+                                logger.error(f"Error fetching presets list: {e}")
+                                
+                        async def on_activate_preset():
+                            if not presets_select.value:
+                                ui.notify('Vui lòng chọn một preset để kích hoạt!', type='warning')
+                                return
+                            try:
+                                async with httpx.AsyncClient() as client:
+                                    res = await client.post(f'http://127.0.0.1:8000/api/config/presets/{presets_select.value}/activate')
+                                    if res.status_code == 200:
+                                        ui.notify(f'Đã kích hoạt Preset {presets_select.value}!', type='positive')
+                                        await fetch_bot_config()
+                                    else:
+                                        ui.notify('Kích hoạt Preset thất bại!', type='negative')
+                            except Exception as e:
+                                ui.notify(f'Lỗi kết nối API: {e}', type='negative')
+                                
+                        async def on_delete_preset():
+                            if not presets_select.value:
+                                return
+                            if presets_select.value == 'default':
+                                ui.notify('Không thể xóa preset default!', type='warning')
+                                return
+                            try:
+                                async with httpx.AsyncClient() as client:
+                                    res = await client.delete(f'http://127.0.0.1:8000/api/config/presets/{presets_select.value}')
+                                    if res.status_code == 200:
+                                        ui.notify(f'Đã xóa Preset {presets_select.value}!', type='positive')
+                                        await fetch_presets()
+                                    else:
+                                        ui.notify('Xóa Preset thất bại!', type='negative')
+                            except Exception as e:
+                                ui.notify(f'Lỗi kết nối API: {e}', type='negative')
+
+                        with ui.row().classes('w-full justify-between items-center gap-2'):
+                            ui.button('Kích hoạt Preset', icon='play_arrow', on_click=on_activate_preset) \
+                                .classes('font-mono-lbl text-xs py-2 text-black').props('color=amber-500')
+                            ui.button('Xóa Preset', icon='delete', on_click=on_delete_preset) \
+                                .classes('font-mono-lbl text-xs py-2').props('flat color=red-500')
+
+                        ui.label('LƯU PRESET MỚI').classes('text-[9px] font-mono-lbl text-[#99907c] mt-2')
+                        with ui.row().classes('w-full items-center gap-4 no-wrap'):
+                            new_preset_name = ui.input(placeholder='Tên preset mới').classes('grow font-mono-lbl').props('dense outlined color=amber-500')
+                            
+                            async def on_save_new_preset():
+                                name = (new_preset_name.value or "").strip()
+                                if not name:
+                                    ui.notify('Vui lòng nhập tên preset!', type='warning')
+                                    return
+                                try:
+                                    async with httpx.AsyncClient() as client:
+                                        res_curr = await client.get('http://127.0.0.1:8000/api/config')
+                                        if res_curr.status_code == 200:
+                                            curr_data = res_curr.json()
+                                            p_cfg = curr_data.get("parity_config", {})
+                                            s_cfg = curr_data.get("size_config", {})
+                                            
+                                            # Update params snapshot
+                                            for k, inp in ai_inputs.items():
+                                                if inp.value is not None:
+                                                    p_cfg[k] = inp.value
+                                                    s_cfg[k] = inp.value
+                                                    
+                                            res_save = await client.post('http://127.0.0.1:8000/api/config/save-preset', json={
+                                                "preset_name": name,
+                                                "parity_config": p_cfg,
+                                                "size_config": s_cfg
+                                            })
+                                            if res_save.status_code == 200:
+                                                ui.notify(f'Đã lưu Preset "{name}" thành công!', type='positive')
+                                                new_preset_name.value = ""
+                                                await fetch_presets()
+                                            else:
+                                                ui.notify('Lưu preset thất bại!', type='negative')
+                                except Exception as e:
+                                    ui.notify(f'Lỗi kết nối API: {e}', type='negative')
+                                    
+                            ui.button('Lưu preset', icon='save', on_click=on_save_new_preset) \
+                                .classes('font-mono-lbl text-xs py-2 text-black').props('color=amber-500')
+
+                    # 3. Cấu hình thuật toán AI (37 tham số chia theo 7 Expansion Panels)
                     with ui.column().classes('w-full glass-panel p-6 gap-4'):
                         ui.label('AI ANALYZER ALGORITHM PARAMETERS (37 PARAMETERS)').classes('text-[10px] font-mono-lbl font-bold tracking-widest gold-text')
                         
@@ -467,10 +565,73 @@ def render_config(container: ui.column):
                             ui.button('Save AI Preset', icon='save', on_click=on_save_ai_preset) \
                                 .classes('font-mono-lbl text-xs text-black py-2').props('color=amber-500')
 
-                    # 3. Lịch sử kết nối WebSocket
+                    # 4. Lịch sử kết nối WebSocket
                     with ui.column().classes('w-full glass-panel p-6 gap-2 mt-4'):
                         ui.label('WEBSOCKET CONNECTION LOGS (LATEST 30)').classes('text-[10px] font-mono-lbl font-bold tracking-widest gold-text')
                         socket_logs_container = ui.column().classes('w-full gap-1 max-h-48 overflow-y-auto font-mono-lbl text-[11px] bg-[#0e0e0e]/30 p-2 border border-[#D4AF37]/5 rounded')
+
+                    # 5. Developer Control Panel (Mock Draw & Import)
+                    with ui.column().classes('w-full glass-panel p-6 gap-4 mt-4'):
+                        ui.label('DEVELOPER & DATA CONTROL').classes('text-[10px] font-mono-lbl font-bold tracking-widest gold-text')
+                        
+                        # Mock Draw
+                        ui.label('MOCK DRAW (KỲ QUAY GIẢ LẬP)').classes('text-[9px] font-mono-lbl text-[#99907c]')
+                        with ui.row().classes('w-full items-center gap-4 no-wrap'):
+                            mock_issue = ui.input(placeholder='Mã kỳ quay (ví dụ: 20260730001)').classes('grow font-mono-lbl').props('dense outlined color=amber-500')
+                            mock_numbers = ui.input(placeholder='5 số mở thưởng (ví dụ: 1,2,3,4,5)').classes('grow font-mono-lbl').props('dense outlined color=amber-500')
+                            
+                            async def on_mock_draw():
+                                issue = (mock_issue.value or "").strip()
+                                num_str = (mock_numbers.value or "").strip()
+                                if not issue or not num_str:
+                                    ui.notify('Vui lòng điền đầy đủ thông tin kỳ quay và số mở thưởng!', type='warning')
+                                    return
+                                try:
+                                    nums = [int(n.strip()) for n in num_str.split(',') if n.strip().isdigit()]
+                                    if len(nums) != 5:
+                                        ui.notify('Vui lòng nhập đúng 5 số, phân tách bằng dấu phẩy!', type='warning')
+                                        return
+                                    async with httpx.AsyncClient() as client:
+                                        res = await client.post('http://127.0.0.1:8000/api/mock-draw', json={
+                                            "issue": issue,
+                                            "numbers": nums
+                                        })
+                                        if res.status_code == 200:
+                                            ui.notify('Đã gửi kỳ quay giả lập thành công!', type='positive')
+                                            mock_issue.value = ""
+                                            mock_numbers.value = ""
+                                        else:
+                                            ui.notify(f"Mock draw thất bại: {res.json().get('detail')}", type='negative')
+                                except Exception as e:
+                                    ui.notify(f'Lỗi kết nối API: {e}', type='negative')
+                                    
+                            ui.button('Mock', icon='add', on_click=on_mock_draw) \
+                                .classes('font-mono-lbl text-xs py-2 text-black').props('color=amber-500')
+                                
+                        # Import History
+                        ui.label('IMPORT HISTORY JSON (DÁN LỊCH SỬ TỪ NETWORK)').classes('text-[9px] font-mono-lbl text-[#99907c] mt-2')
+                        import_textarea = ui.textarea(placeholder='Dán payload JSON lịch sử kỳ quay số tại đây...').classes('w-full font-mono-lbl text-xs bg-[#0e0e0e]/50 border border-[#D4AF37]/15 rounded p-2')
+                        
+                        async def on_import_history():
+                            raw_json = (import_textarea.value or "").strip()
+                            if not raw_json:
+                                return
+                            try:
+                                import json
+                                payload = json.loads(raw_json)
+                                async with httpx.AsyncClient() as client:
+                                    res = await client.post('http://127.0.0.1:8000/api/import-history', json=payload)
+                                    if res.status_code == 200:
+                                        result = res.json()
+                                        ui.notify(f"Đã import thành công {result.get('imported_records', 0)} kỳ quay mới!", type='positive')
+                                        import_textarea.value = ""
+                                    else:
+                                        ui.notify('Import thất bại!', type='negative')
+                            except Exception as e:
+                                ui.notify(f'Dữ liệu JSON không hợp lệ hoặc lỗi kết nối: {e}', type='negative')
+                                
+                        ui.button('Import History Data', icon='file_upload', on_click=on_import_history) \
+                            .classes('font-mono-lbl text-xs py-2 text-black w-full mt-2').props('color=amber-500')
 
         # Logic Load dữ liệu động cho Tab Bot khi được vẽ lần đầu
         async def fetch_bot_config():
@@ -534,5 +695,7 @@ def render_config(container: ui.column):
 
         # Nạp dữ liệu cấu hình bot sau khi load giao diện
         ui.timer(0.2, fetch_bot_config, once=True)
+        ui.timer(0.2, fetch_presets, once=True)
+        ui.timer(10.0, fetch_presets)
         ui.timer(5.0, fetch_socket_logs)
         ui.timer(0.2, fetch_socket_logs, once=True)
