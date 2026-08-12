@@ -20,6 +20,13 @@ def seed_default_services():
             "description": "Jarvis-inspired local voice and vision assistant.",
             "status": "active",
             "meta_payload": {"url": "http://localhost:9000"}
+        },
+        {
+            "code": "dominus-investor",
+            "name": "Dominus Investor Service",
+            "description": "Stock and derivatives trading bot and scanner service via TCBS API.",
+            "status": "active",
+            "meta_payload": {"url": "http://localhost:8002", "health_path": "/health"}
         }
     ]
 
