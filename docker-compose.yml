@@ -8,11 +8,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
-      POSTGRES_DB: markovlotteai
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql:ro
 
   redis:
     image: redis:7-alpine
@@ -29,21 +30,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/markovlotteai
+      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/markov_brain_db
       - REDIS_HOST=redis
     depends_on:
       - db
       - redis
 
-  dominus-backend:
+  dominus-core:
     build:
-      context: ./dominus-backend
-    container_name: dominus_backend
+      context: ./dominus-core
+    container_name: dominus_core
     restart: always
     ports:
-      - "8001:8001"
+      - "8003:8003"
     environment:
-      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/markovlotteai
+      - DATABASE_URL=postgresql+psycopg2://postgres:123@db:5432/dominus_core_db
       - REDIS_HOST=redis
       - MARKOV_BRAIN_URL=http://markovbrain:8000
       - MARKOV_BRAIN_WS=ws://markovbrain:8000/ws
@@ -51,6 +52,25 @@ services:
       - db
       - redis
       - markovbrain
+
+  dominus-investor:
+    build:
+      context: ./dominus-investor
+    container_name: dominus_investor
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:123@db:5432/dominus_investor_db
+      - REDIS_HOST=redis
+      - TCBS_API_KEY=${TCBS_API_KEY:-10000319258-34c2530a-b48b-4915-9250-2756f3613b0c}
+      - TCBS_BASE_URL=https://openapi.tcbs.com.vn
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CHANNEL_ID=${DISCORD_CHANNEL_ID}
+      - DISCORD_ENABLED=${DISCORD_ENABLED:-false}
+    depends_on:
+      - db
+      - redis
 
   dominus-frontend:
     build:
@@ -60,26 +80,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - dominus-backend
-
-  dominus-investor:
-    build:
-      context: ./dominus-investor
-    container_name: dominus_investor
-    restart: always
-    ports:
-      - "8002:8002"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:123@db:5432/markovlotteai
-      - REDIS_HOST=redis
-      - TCBS_API_KEY=${TCBS_API_KEY:-dummy_api_key}
-      - TCBS_BASE_URL=https://openapi.tcbs.com.vn
-      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-      - DISCORD_CHANNEL_ID=${DISCORD_CHANNEL_ID}
-      - DISCORD_ENABLED=${DISCORD_ENABLED:-false}
-    depends_on:
-      - db
-      - redis
+      - dominus-core
+      - dominus-investor
 
 volumes:
   pgdata:

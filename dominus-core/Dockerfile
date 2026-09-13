@@ -14,6 +14,6 @@ COPY . .
 
 ENV PYTHONPATH=.
 
-EXPOSE 8001
+EXPOSE 8003
 
 CMD ["python", "src/main.py"]
